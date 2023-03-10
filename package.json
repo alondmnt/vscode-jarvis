@@ -1,0 +1,140 @@
+{
+  "name": "jarvis",
+  "displayName": "Jarvis",
+  "description": "AI-powered scientific literature review (GPT-3)",
+  "version": "0.1.0",
+  "author": {
+    "name": "Alon Diament"
+  },
+  "engines": {
+    "vscode": "^1.76.0"
+  },
+  "categories": [
+    "Data Science",
+    "Machine Learning",
+    "Education"
+  ],
+  "activationEvents": [],
+  "main": "./out/extension.js",
+  "contributes": {
+    "commands": [
+      {
+        "command": "jarvis.research",
+        "title": "Research with Jarvis"
+      }
+    ],
+    "configuration": {
+      "title": "Jarvis",
+      "properties": {
+        "jarvis.openAI.apiKey": {
+          "type": "string",
+          "default": "",
+          "description": "Your OpenAI API key"
+        },
+        "jarvis.openAI.model": {
+          "type": "string",
+          "default": "gpt-3.5-turbo",
+          "description": "GPT-3 model to use",
+          "enum": [
+            "gpt-3.5-turbo",
+            "text-davinci-003",
+            "text-davinci-002",
+            "text-curie-001",
+            "text-babbage-001",
+            "text-ada-001"
+          ]
+        },
+        "jarvis.openAI.maxTokens": {
+          "type": "number",
+          "default": 4000,
+          "description": "Maximum number of tokens to return"
+        },
+        "jarvis.openAI.temperature": {
+          "type": "number",
+          "default": 0.9,
+          "description": "Temperature for the GPT-3 model"
+        },
+        "jarvis.openAI.topP": {
+          "type": "number",
+          "default": 1,
+          "description": "Top-p for the GPT-3 model"
+        },
+        "jarvis.openAI.frequencyPenalty": {
+          "type": "number",
+          "default": 0,
+          "description": "Frequency penalty for the GPT-3 model"
+        },
+        "jarvis.openAI.presencePenalty": {
+          "type": "number",
+          "default": 0,
+          "description": "Presence penalty for the GPT-3 model"
+        },
+        "jarvis.scopus.apiKey": {
+          "type": "string",
+          "default": "",
+          "description": "Your Scopus API key"
+        },
+        "jarvis.springer.apiKey": {
+          "type": "string",
+          "default": "",
+          "description": "Your Springer API key"
+        },
+        "jarvis.research.searchEngine": {
+          "type": "string",
+          "default": "Semantic Scholar",
+          "description": "Search engine to use for research",
+          "enum": [
+            "Semantic Scholar",
+            "Scopus"
+          ]
+        },
+        "jarvis.research.searchWikipedia": {
+          "type": "boolean",
+          "default": true,
+          "description": "Search Wikipedia for the research topic"
+        },
+        "jarvis.research.paperSpace": {
+          "type": "number",
+          "default": 50,
+          "description": "Top search results to sample from"
+        },
+        "jarvis.research.paperTokens": {
+          "type": "number",
+          "min": 0,
+          "max": 100,
+          "default": 50,
+          "description": "% of tokens for paper content (research context)"
+        },
+        "jarvis.research.includeSummary": {
+          "type": "boolean",
+          "default": false,
+          "description": "Include paper summary in research report"
+        }
+      }
+    }
+  },
+  "scripts": {
+    "vscode:prepublish": "npm run compile",
+    "compile": "tsc -p ./",
+    "watch": "tsc -watch -p ./",
+    "pretest": "npm run compile && npm run lint",
+    "lint": "eslint src --ext ts",
+    "test": "node ./out/test/runTest.js"
+  },
+  "devDependencies": {
+    "@types/glob": "^8.1.0",
+    "@types/mocha": "^10.0.1",
+    "@types/node": "16.x",
+    "@types/vscode": "^1.76.0",
+    "@typescript-eslint/eslint-plugin": "^5.53.0",
+    "@typescript-eslint/parser": "^5.53.0",
+    "@vscode/test-electron": "^2.2.3",
+    "eslint": "^8.34.0",
+    "glob": "^8.1.0",
+    "mocha": "^10.2.0",
+    "typescript": "^4.9.5"
+  },
+  "dependencies": {
+    "axios": "^1.3.4"
+  }
+}
