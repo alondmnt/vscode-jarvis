@@ -14,7 +14,12 @@ export function activate(context: vscode.ExtensionContext) {
       editor.edit(editBuilder => {
         editBuilder.replace(selection, '');
       });
-			do_research(text);
+      try {
+        do_research(text);
+      } catch (error) {
+        vscode.window.showErrorMessage('Jarvis encountered an error. Try again.');
+        throw error;
+      }
 		}
 	});
 
