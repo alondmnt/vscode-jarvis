@@ -75,7 +75,11 @@ async function run_semantic_scholar_query(query: string, papers: number): Promis
     const url = `https://api.semanticscholar.org/graph/v1/paper/search?query=${query}&limit=${limit}&page=${start}&fields=abstract,authors,title,year,venue,journal,citationCount,externalIds`;
     let response = await axios.get(url, options).catch((error) => { return error; });
 
-    if ( response.status !== 200 ) {
+    if ( response.status === 429 ) {
+      console.log(response);
+      vscode.window.showErrorMessage('Semantic Scholar API rate limit exceeded');
+      continue;
+    } else if ( response.status !== 200 ) {
       console.log(response);
       vscode.window.showErrorMessage('Scopus API error');
       continue;
@@ -351,19 +355,7 @@ async function get_crossref_info(paper: PaperInfo): Promise<PaperInfo> {
   const info = response.data['message'];
   if ( info.hasOwnProperty('abstract') && (typeof info['abstract'] === 'string') ) {
     console.log('crossref success!');
-      paper['text'] = info['abstract'].trim();
-      paper['text'] = info['abstract'].trim();
-    }
-  }
-  catch (error) {
-    console.log(error);
-    console.log(jsonResponse);
     paper['text'] = info['abstract'].trim();
-    }
-  }
-  catch (error) {
-    console.log(error);
-    console.log(jsonResponse);
   }
   return paper;
 }
@@ -383,30 +375,22 @@ async function get_scidir_info(paper: PaperInfo, settings: JarvisSettings): Prom
   const response = await axios.get(url, options).catch((error) => { return error; });
 
   if (response.status !== 200) {
-    console.log('science_direct: ', response);
+    console.log('science_direct error: ', response);
     return paper;
   }
 
   const info = response.data['full-text-retrieval-response'];
   if ( (info['originalText']) && (typeof info['originalText'] === 'string') ) {
 
-  try {
-  try {
-    jsonResponse = await response.json();
-    const info = jsonResponse['full-text-retrieval-response'];
-    if ( (info['originalText']) && (typeof info['originalText'] === 'string') ) {
     try {
-    jsonResponse = await response.json();
-    const info = jsonResponse['full-text-retrieval-response'];
-    if ( (info['originalText']) && (typeof info['originalText'] === 'string') ) {
       paper['text'] = info['originalText']
-      .split(/Discussion|Conclusion/gmi).slice(-1)[0]
-      .split(/References/gmi).slice(0)[0].split(/Acknowledgements/gmi).slice(0)[0]
-      .slice(0, 0.75*4*settings.max_tokens).trim();
+        .split(/Discussion|Conclusion/gmi).slice(-1)[0]
+        .split(/References/gmi).slice(0)[0].split(/Acknowledgements/gmi).slice(0)[0]
+        .slice(0, 0.75*4*settings.max_tokens).trim();
+      console.log('science_direct success (full)!');
     } catch {
-      console.log('science_direct: error parsing full text.');
+        console.log('science_direct: error parsing full text.');
     }
-    console.log('science_direct succes (full)!');
 
   } else if ( info['coredata']['dc:description'] ) {
     paper['text'] = info['coredata']['dc:description'].trim();
@@ -430,26 +414,14 @@ async function get_scopus_info(paper: PaperInfo, settings: JarvisSettings): Prom
   const response = await axios.get(url, options).catch((error) => { return error; });
 
   if (response.status !== 200) {
-    console.log('scopus: ', response);
+    console.log('scopus error: ', response);
     return paper;
   }
 
   const info = response.data['abstracts-retrieval-response']['coredata'];
   if ( info['dc:description'] ) {
-    console.log('scopus success!');
-      paper['text'] = info['dc:description'].trim();
-      paper['text'] = info['dc:description'].trim();
-    }
-  }
-  catch (error) {
-    console.log(error);
-    console.log(jsonResponse);
     paper['text'] = info['dc:description'].trim();
-    }
-  }
-  catch (error) {
-    console.log(error);
-    console.log(jsonResponse);
+    console.log('scopus success!');
   }
   return paper;
 }
@@ -477,19 +449,7 @@ async function get_springer_info(paper: PaperInfo, settings: JarvisSettings): Pr
   if ( info ) {
     console.log('springer success!');
       paper['text'] = info.trim();
-      paper['text'] = info.trim();
     }
-  }
-  catch (error) {
-    console.log(error);
-    console.log(jsonResponse);
-    paper['text'] = info.trim();
-    }
-  }
-  catch (error) {
-    console.log(error);
-    console.log(jsonResponse);
-  }
   return paper;
 }
 
@@ -513,18 +473,6 @@ async function get_semantic_scholar_info(paper: PaperInfo, settings: JarvisSetti
   if ( info ) {
     console.log('semantic_scholar success!');
       paper['text'] = info.trim();
-      paper['text'] = info.trim();
     }
-  }
-  catch (error) {
-    console.log(error);
-    console.log(jsonResponse);
-    paper['text'] = info.trim();
-    }
-  }
-  catch (error) {
-    console.log(error);
-    console.log(jsonResponse);
-  }
   return paper;
 }
