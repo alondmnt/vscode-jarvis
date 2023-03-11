@@ -13,6 +13,7 @@ export async function do_research(prompt: string) {
   const use_wikipedia = settings.use_wikipedia;
 
   let [papers, search] = await search_papers(prompt, n_papers, settings);
+  console.log(`papers: ${papers.length}`);
 
   replace_selection(search.response);
   let wiki_search: Promise<WikiInfo> = Promise.resolve({ summary: '' });
@@ -21,6 +22,7 @@ export async function do_research(prompt: string) {
     wiki_search = search_wikipedia(prompt, search, settings);
   }
   papers = await sample_and_summarize_papers(papers, paper_tokens, search, settings);
+  console.log(`papers sampled and summarized (${papers.length})`);
 
   if (papers.length === 0) {
     replace_selection('No relevant papers found. Consider expanding your paper space, resending your prompt, or adjusting it.\n');
@@ -29,6 +31,7 @@ export async function do_research(prompt: string) {
 
   const full_prompt = get_full_prompt(papers, await wiki_search, search);
   const research = await query_completion(full_prompt, settings);
+  console.log(`research completed (${research.length} chars)`);
   replace_selection('\n## Review\n\n' + research.trim());
 }
 

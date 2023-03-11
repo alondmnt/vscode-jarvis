@@ -8,7 +8,7 @@ import { replace_selection } from './utils';
 
 export interface PaperInfo {
   title: string;
-  author: string[];
+  author: string;
   year: number;
   journal: string;
   doi: string;
@@ -29,6 +29,7 @@ export async function search_papers(prompt: string, n: number, settings: JarvisS
     min_results: number = 10, retries: number = 2): Promise<[PaperInfo[], SearchParams]> {
 
   const search = await get_search_queries(prompt, settings);
+  console.log('search_papers');
 
   // run multiple queries in parallel and remove duplicates
   let results: PaperInfo[] = [];
@@ -60,7 +61,6 @@ export async function search_papers(prompt: string, n: number, settings: JarvisS
 
 async function run_semantic_scholar_query(query: string, papers: number): Promise<PaperInfo[]> {
   const options = {
-    method: 'GET', 
     headers:{ 'Accept': 'application/json' },
   };
 
@@ -72,17 +72,21 @@ async function run_semantic_scholar_query(query: string, papers: number): Promis
   let results: PaperInfo[] = [];
 
   for (let p = 0; p < pages; p++) {
-    const url = `https://api.semanticscholar.org/graph/v1/paper/search?query=${query}&limit=${limit}&page=${start}&fields=abstract,authors,title,year,venue,citationCount,externalIds`;
-    let response = await axios(url, options);
+    const url = `https://api.semanticscholar.org/graph/v1/paper/search?query=${query}&limit=${limit}&page=${start}&fields=abstract,authors,title,year,venue,journal,citationCount,externalIds`;
+    let response = await axios.get(url, options).catch((error) => { return error; });
 
-    let jsonResponse: any;
-    let papers: any[] = [];
-    if (response.data) {
-      jsonResponse = response.data;
-      papers = jsonResponse['data'];
+    if ( response.status !== 200 ) {
+      console.log(response);
+      vscode.window.showErrorMessage('Scopus API error');
+      continue;
     }
 
-    if ( !response.data ) {
+    const data = response.data;
+    let papers: any[] = [];
+    if (data) {
+      papers = data['data'];
+    }
+    if ( !data ) {
       start += 25;
       continue;
     }
@@ -121,7 +125,6 @@ async function run_scopus_query(query: string, papers: number,
     'X-ELS-APIKey': settings.scopus_api_key,
   };
   const options = {
-    method: 'GET', 
     headers: headers,
   };
 
@@ -133,16 +136,26 @@ async function run_scopus_query(query: string, papers: number,
 
   for (let p = 0; p < pages; p++) {
     const url = `https://api.elsevier.com/content/search/scopus?query=${query}&count=25&start=${start}&sort=-relevancy,-citedby-count,-pubyear`;
-    let response = await axios(url, options);
+    let response = await axios.get(url, options).catch((error) => { return error; });
 
-    let jsonResponse: any;
-    let papers: any[] = [];
-    if (response.data) {
-      jsonResponse = response.data;
-      papers = jsonResponse['search-results']['entry'];
+    if ( response.status === 429 ) {
+      vscode.window.showErrorMessage('Scopus API key rate limit exceeded');
+      throw new Error('Scopus API key rate limit exceeded');
+    } else if ( response.status === 401 ) {
+      vscode.window.showErrorMessage('Scopus API key invalid');
+      throw new Error('Scopus API key invalid');
+    } else if ( response.status !== 200 ) {
+      console.log(response);
+      vscode.window.showErrorMessage('Scopus API error');
+      continue;
     }
 
-    if (!response.data || papers[0].hasOwnProperty('error')) {
+    const data = response.data;
+    let papers: any[] = [];
+    if (data) {
+      papers = data['search-results']['entry'];
+    }
+    if (!data || papers[0].hasOwnProperty('error')) {
       start += 25;
       continue;
     }
@@ -169,7 +182,7 @@ async function run_scopus_query(query: string, papers: number,
       }
 
       start += 25;
-      if ( jsonResponse['search-results']['opensearch:totalResults'] < start ) {
+      if ( data['search-results']['opensearch:totalResults'] < start ) {
         break;
       }
 
@@ -183,6 +196,7 @@ async function run_scopus_query(query: string, papers: number,
 
 async function get_search_queries(prompt: string, settings: JarvisSettings):
     Promise<SearchParams> {
+  console.log('get_search_queries');
   const response = await query_completion(
     `you are writing an academic text.
     first, list a few research questions that arise from the prompt below.
@@ -216,6 +230,7 @@ async function get_search_queries(prompt: string, settings: JarvisSettings):
 
 export async function sample_and_summarize_papers(papers: PaperInfo[], max_tokens: number,
     search: SearchParams, settings: JarvisSettings): Promise<PaperInfo[]> {
+  console.log('start sample_and_summarize_papers');
   let results: PaperInfo[] = [];
   let tokens = 0;
 
@@ -312,25 +327,27 @@ async function get_crossref_info(paper: PaperInfo): Promise<PaperInfo> {
     "Accept": "application/json",
   };
   const options = {
-    method: 'GET',
+    timeout: 5000,
     headers: headers,
   };
-  let response: any;
-  try {
-    response = await with_timeout(5000, axios(url, options));
-  } catch {
-    console.log('TIMEOUT crossref');
+  const response = await axios.get(url, options).catch((error) => { return error; });
+
+  if (response.status !== 200) {
+    console.log('crossref error: ', response);
     return paper;
   }
 
-  if (!response.ok) { return paper; }
-
-  let jsonResponse: any;
-  try {
-    jsonResponse = await response.json();
-    const info = jsonResponse['message'];
-    if ( info.hasOwnProperty('abstract') && (typeof info['abstract'] === 'string') ) {
+  const info = response.data['message'];
+  if ( info.hasOwnProperty('abstract') && (typeof info['abstract'] === 'string') ) {
+    console.log('crossref success!');
       paper['text'] = info['abstract'].trim();
+      paper['text'] = info['abstract'].trim();
+    }
+  }
+  catch (error) {
+    console.log(error);
+    console.log(jsonResponse);
+    paper['text'] = info['abstract'].trim();
     }
   }
   catch (error) {
@@ -349,35 +366,40 @@ async function get_scidir_info(paper: PaperInfo, settings: JarvisSettings): Prom
     'X-ELS-APIKey': settings.scopus_api_key,
   };
   const options = {
-    method: 'GET',
+    timeout: 5000,
     headers: headers,
   };
-  let response: any;
-  try {
-    response = await with_timeout(5000, axios(url, options));
-  } catch {
-    console.log('TIMEOUT scidir');
+  const response = await axios.get(url, options).catch((error) => { return error; });
+
+  if (response.status !== 200) {
+    console.log('science_direct: ', response);
     return paper;
   }
 
-  if (!response.ok) { return paper; }
+  const info = response.data['full-text-retrieval-response'];
+  if ( (info['originalText']) && (typeof info['originalText'] === 'string') ) {
 
-  let jsonResponse: any;
+  try {
   try {
     jsonResponse = await response.json();
     const info = jsonResponse['full-text-retrieval-response'];
     if ( (info['originalText']) && (typeof info['originalText'] === 'string') ) {
+    try {
+    jsonResponse = await response.json();
+    const info = jsonResponse['full-text-retrieval-response'];
+    if ( (info['originalText']) && (typeof info['originalText'] === 'string') ) {
       paper['text'] = info['originalText']
-        .split(/Discussion|Conclusion/gmi).slice(-1)[0]
-        .split(/References/gmi).slice(0)[0].split(/Acknowledgements/gmi).slice(0)[0]
-        .slice(0, 0.75*4*settings.max_tokens).trim();
-    } else if ( info['coredata']['dc:description'] ) {
-      paper['text'] = info['coredata']['dc:description'].trim();
+      .split(/Discussion|Conclusion/gmi).slice(-1)[0]
+      .split(/References/gmi).slice(0)[0].split(/Acknowledgements/gmi).slice(0)[0]
+      .slice(0, 0.75*4*settings.max_tokens).trim();
+    } catch {
+      console.log('science_direct: error parsing full text.');
     }
-  }
-  catch (error) {
-    console.log(error);
-    console.log(jsonResponse);
+    console.log('science_direct succes (full)!');
+
+  } else if ( info['coredata']['dc:description'] ) {
+    paper['text'] = info['coredata']['dc:description'].trim();
+    console.log('science_direct success (abstract)!');
   }
   return paper;
 }
@@ -391,25 +413,27 @@ async function get_scopus_info(paper: PaperInfo, settings: JarvisSettings): Prom
     'X-ELS-APIKey': settings.scopus_api_key,
   };
   const options = {
-    method: 'GET',
+    timeout: 5000,
     headers: headers,
   };
-  let response: any;
-  try {
-    response = await with_timeout(5000, axios(url, options));
-  } catch {
-    console.log('TIMEOUT scopus');
+  const response = await axios.get(url, options).catch((error) => { return error; });
+
+  if (response.status !== 200) {
+    console.log('scopus: ', response);
     return paper;
   }
 
-  if (!response.ok) { return paper; }
-
-  let jsonResponse: any;
-  try {
-    jsonResponse = await response.json();
-    const info = jsonResponse['abstracts-retrieval-response']['coredata'];
-    if ( info['dc:description'] ) {
+  const info = response.data['abstracts-retrieval-response']['coredata'];
+  if ( info['dc:description'] ) {
+    console.log('scopus success!');
       paper['text'] = info['dc:description'].trim();
+      paper['text'] = info['dc:description'].trim();
+    }
+  }
+  catch (error) {
+    console.log(error);
+    console.log(jsonResponse);
+    paper['text'] = info['dc:description'].trim();
     }
   }
   catch (error) {
@@ -427,26 +451,28 @@ async function get_springer_info(paper: PaperInfo, settings: JarvisSettings): Pr
     'Accept': 'application/json',
   };
   const options = {
-    method: 'GET',
+    timeout: 5000,
     headers: headers,
   };
-  let response: any;
-  try {
-    response = await with_timeout(5000, axios(url, options));
-  } catch {
-    console.log('TIMEOUT springer');
+  const response = await axios.get(url, options).catch((error) => { return error; });
+
+  if (response.status !== 200) {
+    console.log('springer: ', response);
     return paper;
   }
 
-  if (!response.ok) { return paper; }
-
-  let jsonResponse: any;
-  try {
-    jsonResponse = await response.json();
-    if (jsonResponse['records'].length === 0) { return paper; }
-    const info = jsonResponse['records'][0]['abstract'];
-    if ( info ) {
+  if (response.data['records'].length === 0) { return paper; }
+  const info = response.data['records'][0]['abstract'];
+  if ( info ) {
+    console.log('springer success!');
       paper['text'] = info.trim();
+      paper['text'] = info.trim();
+    }
+  }
+  catch (error) {
+    console.log(error);
+    console.log(jsonResponse);
+    paper['text'] = info.trim();
     }
   }
   catch (error) {
@@ -462,25 +488,27 @@ async function get_semantic_scholar_info(paper: PaperInfo, settings: JarvisSetti
     'Accept': 'application/json',
   };
   const options = {
-    method: 'GET',
+    timeout: 5000,
     headers: headers,
   };
-  let response: any;
-  try {
-    response = await with_timeout(5000, axios(url, options));
-  } catch {
-    console.log('TIMEOUT semantic_scholar');
+  const response = await axios.get(url, options).catch((error) => { return error; });
+
+  if (response.status !== 200) {
+    console.log('semantic_scholar: ', response);
     return paper;
   }
 
-  if (!response.ok) { return paper; }
-
-  let jsonResponse: any;
-  try {
-    jsonResponse = await response.json();
-    const info = jsonResponse['abstract'];
-    if ( info ) {
+  const info = response.data['abstract'];
+  if ( info ) {
+    console.log('semantic_scholar success!');
       paper['text'] = info.trim();
+      paper['text'] = info.trim();
+    }
+  }
+  catch (error) {
+    console.log(error);
+    console.log(jsonResponse);
+    paper['text'] = info.trim();
     }
   }
   catch (error) {
@@ -488,13 +516,4 @@ async function get_semantic_scholar_info(paper: PaperInfo, settings: JarvisSetti
     console.log(jsonResponse);
   }
   return paper;
-}
-
-function with_timeout(msecs: number, promise: Promise<AxiosResponse>) {
-  const timeout = new Promise((resolve, reject) => {
-    setTimeout(() => {
-      reject(new Error("timeout"));
-    }, msecs);
-  });
-  return Promise.race([timeout, promise]);
 }

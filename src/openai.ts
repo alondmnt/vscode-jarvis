@@ -40,8 +40,11 @@ export async function query_completion(
     headers: {
       Authorization: 'Bearer ' + settings.openai_api_key
     },
+  }).catch((error) => {
+    vscode.window.showErrorMessage('OpenAI API error: ' + error);
+    return error;
   });
-  const data: any = await response.data;
+  const data = response.data;
 
   // output completion
   if (data.hasOwnProperty('choices') && (data.choices[0].text)) {
@@ -52,14 +55,12 @@ export async function query_completion(
   }
 
   // display error message
-  const errorHandler = await vscode.window.showErrorMessage(
-    `Error: ${data.error.message}\nPress OK to retry.`,
-    'OK', 'Cancel'
-    );
-
-  if (errorHandler === 'Cancel') {
-    return '';
-  }
+  await vscode.window.showErrorMessage(
+    `Error: ${data.error.message}`, 'Retry', 'Cancel').then((selection) => {
+      if ( selection === 'Cancel' ) {
+        return '';
+      }
+    });
   // adjust & retry
 
   // find all numbers in error message

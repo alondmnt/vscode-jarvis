@@ -23,8 +23,15 @@ export async function search_wikipedia(prompt: string, search: SearchParams, set
   if ( !search_term ) { return { summary: '' }; }
 
   const url = `https://en.wikipedia.org/w/api.php?action=query&list=search&origin=*&format=json&srlimit=20&srsearch=${search_term}`;
-  let response = await axios(url);
+  const options = {
+    headers: {'Accept': 'application/json'},
+  };
+  let response = await axios.get(url, options).catch((error) => { return error; });
 
+  if (response.status !== 200) {
+    console.log('wikipedia error ', response);
+    return { summary: '' };
+  }
   if (!response.data) { return { summary: '' }; }
 
   let pages: Promise<WikiInfo>[] = [];
@@ -44,8 +51,11 @@ export async function search_wikipedia(prompt: string, search: SearchParams, set
   }
 
   let best_page = await get_best_page(pages, results.length, search, settings);
+  console.log('best page selected');
   best_page = await get_wikipedia_page(best_page, 'text', 'explaintext');
+  console.log('full page text retrieved');
   best_page = await get_page_summary(best_page, search.questions, settings);
+  console.log('page summary retrieved');
   return best_page;
 }
 
@@ -68,15 +78,14 @@ async function get_wikipedia_search_query(prompt: string, settings: JarvisSettin
 async function get_wikipedia_page(page: WikiInfo, field:string = 'text', section: string = 'explaintext'): Promise<WikiInfo> {
   const url = `https://en.wikipedia.org/w/api.php?action=query&prop=extracts&${section}&format=json&pageids=${page['id']}`;
   const options = {
-    method: 'GET',
     headers: {'Accept': 'application/json'},
   };
-  let response = await axios(url, options).catch((error) => {
-    console.log(`error getting wikipedia page:\n${page}`);
-    console.log(error);
-    return { data: null };
-  });
+  let response = await axios.get(url, options).catch((error) => { return error; });
 
+  if (response.status !== 200) {
+    console.log('wikipedia error ', response);
+    return page;
+  }
   if (!response.data) { return page; }
 
   const jsonResponse = response.data;
@@ -120,7 +129,7 @@ async function get_page_summary(page: WikiInfo, questions: string, settings: Jar
 
   const prompt = 
     `here are research questions, a text, and a summary.
-    add information from the text that is relevant to the questions to the summary,
+    add to the summary information from the text that is relevant to the questions,
     and output the revised summary in the reponse.
     in the response, do not remove any information from the summary.
     QUESTIONS:\n${questions}
