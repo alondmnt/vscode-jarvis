@@ -37,14 +37,28 @@ export async function query_completion(
   }
 
   const response = await axios.post(url, responseParams, {
+    timeout: settings.timeout,
     headers: {
       Authorization: 'Bearer ' + settings.openai_api_key
-    },
+    }
   }).catch((error) => {
-    vscode.window.showErrorMessage('OpenAI API error: ' + error);
+    console.log('OpenAI error: ', error);
     return error;
   });
   const data = response.data;
+
+  if (response.message && response.message.includes('timeout')) {
+    const selection = await vscode.window.showErrorMessage(
+      'OpenAI request timed out. You can increase the timeout in the settings.',
+      'Retry', 'Cancel');
+    if ( selection === 'Cancel' ) {
+      return '';
+    } else {
+      console.log('retrying request');
+      return await query_completion(prompt, settings, adjust_max_tokens);
+    }
+  }
+  if (!data) { return ''; }
 
   // output completion
   if (data.hasOwnProperty('choices') && (data.choices[0].text)) {
@@ -55,12 +69,11 @@ export async function query_completion(
   }
 
   // display error message
-  await vscode.window.showErrorMessage(
-    `Error: ${data.error.message}`, 'Retry', 'Cancel').then((selection) => {
-      if ( selection === 'Cancel' ) {
-        return '';
-      }
-    });
+  const selection = await vscode.window.showErrorMessage(
+    `Error: ${data.error.message}`, 'Retry', 'Cancel');
+  if ( selection === 'Cancel' ) {
+    return '';
+  }
   // adjust & retry
 
   // find all numbers in error message

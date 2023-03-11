@@ -26,6 +26,7 @@ export interface JarvisSettings {
   top_p: number;
   frequency_penalty: number;
   presence_penalty: number;
+  timeout: number;
   paper_search_engine: string;
   use_wikipedia: boolean;
   paper_space: number;
@@ -45,6 +46,7 @@ export function get_settings(): JarvisSettings {
     top_p: settings.get('openAI.topP') as number,
     frequency_penalty: settings.get('openAI.frequencyPenalty') as number,
     presence_penalty: settings.get('openAI.presencePenalty') as number,
+    timeout: 1000*(settings.get('openAI.timeout') as number),
     paper_search_engine: settings.get('research.searchEngine') as string,
     use_wikipedia: settings.get('research.searchWikipedia') as boolean,
     paper_space: settings.get('research.paperSpace') as number,

@@ -69,6 +69,11 @@
           "default": 0,
           "description": "Presence penalty for the GPT-3 model"
         },
+        "jarvis.openAI.timeout": {
+          "type": "number",
+          "default": 30,
+          "description": "Timeout (sec) for the GPT-3 model"
+        },
         "jarvis.scopus.apiKey": {
           "type": "string",
           "default": "",
