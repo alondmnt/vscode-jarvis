@@ -383,16 +383,26 @@ async function get_scidir_info(paper: PaperInfo, settings: JarvisSettings): Prom
   if ( (info['originalText']) && (typeof info['originalText'] === 'string') ) {
 
     try {
-      paper['text'] = info['originalText']
-        .split(/Discussion|Conclusion/gmi).slice(-1)[0]
-        .split(/References/gmi).slice(0)[0].split(/Acknowledgements/gmi).slice(0)[0]
-        .slice(0, 0.75*4*settings.max_tokens).trim();
+      const regex = new RegExp(/Discussion|Conclusion/gmi);
+      if (regex.test(info['originalText'])) {
+        // get end of main text
+        paper['text'] = info['originalText']
+          .split(/\bReferences/gmi).slice(-2)[0]
+          .split(/Acknowledgments|Acknowledgements/gmi).slice(-2)[0]
+          .split(regex).slice(-1)[0];
+
+      } else {
+        // get start of main text
+        paper['text'] = info['originalText'].split(/http/gmi)[-1];  // remove preceding urls
+      }
+      paper['text'] = paper['text'].slice(0, 0.75*4*settings.max_tokens).trim();
       console.log('science_direct success (full)!');
     } catch {
-        console.log('science_direct: error parsing full text.');
+      paper['text'] = '';
+      console.log('science_direct: error parsing full text.');
     }
-
-  } else if ( info['coredata']['dc:description'] ) {
+  }
+  if ( !paper['text'] && info['coredata']['dc:description'] ) {
     paper['text'] = info['coredata']['dc:description'].trim();
     console.log('science_direct success (abstract)!');
   }
