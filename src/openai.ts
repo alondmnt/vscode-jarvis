@@ -58,30 +58,36 @@ export async function query_completion(
       return await query_completion(prompt, settings, adjust_max_tokens);
     }
   }
-  if (!data) { return ''; }
-
-  // output completion
-  if (data.hasOwnProperty('choices') && (data.choices[0].text)) {
-    return data.choices[0].text;
+  if (response.status !== 200 && response.response.status !== 400) {
+    vscode.window.showErrorMessage('OpenAI request failed: ' + response.error.message);
+    return '';
   }
-  if (data.hasOwnProperty('choices') && data.choices[0].message.content) {
-    return data.choices[0].message.content;
+
+  if (data) {
+    // output completion
+    if (data.hasOwnProperty('choices') && (data.choices[0].text)) {
+      return data.choices[0].text;
+    }
+    if (data.hasOwnProperty('choices') && data.choices[0].message.content) {
+      return data.choices[0].message.content;
+    }
   }
 
   // display error message
+  const error = response.response.data.error.message;
   const selection = await vscode.window.showErrorMessage(
-    `Error: ${data.error.message}`, 'Retry', 'Cancel');
+    `Error: ${error}`, 'Retry', 'Cancel');
   if ( selection === 'Cancel' ) {
     return '';
   }
   // adjust & retry
 
   // find all numbers in error message
-  const max_tokens = [...data.error.message.matchAll(/([0-9]+)/g)];
+  const max_tokens = [...error.matchAll(/([0-9]+)/g)];
 
   // adjust max tokens
   if ((max_tokens !== null) &&
-      (data.error.message.includes('reduce'))) {
+      (error.includes('reduce'))) {
     adjust_max_tokens = parseInt(max_tokens[1]) - parseInt(max_tokens[0]) + 1;
   }
 

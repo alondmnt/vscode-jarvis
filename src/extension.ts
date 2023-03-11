@@ -18,9 +18,9 @@ export function activate(context: vscode.ExtensionContext) {
         do_research(text);
       } catch (error) {
         vscode.window.showErrorMessage('Jarvis encountered an error. Try again.');
-        throw error;
+        console.log(error);
       }
-		}
+	  }
 	});
 
 	context.subscriptions.push(disposable);
