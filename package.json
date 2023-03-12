@@ -1,8 +1,9 @@
 {
-  "name": "jarvis",
+  "name": "jarvis-notes",
   "displayName": "Jarvis",
   "description": "AI-powered scientific literature review (GPT-3)",
-  "version": "0.1.0",
+  "version": "0.0.1",
+  "publisher": "alondmnt",
   "author": {
     "name": "Alon Diament"
   },
@@ -14,6 +15,16 @@
     "Machine Learning",
     "Education"
   ],
+  "icon": "images/jarvis-logo.png",
+  "homepage": "https://github.com/alondmnt/vscode-jarvis#readme",
+  "bugs": {
+    "url": "https://github.com/alondmnt/vscode-jarvis/issues"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/alondmnt/vscode-jarvis"
+  },
+  "license": "MIT",
   "activationEvents": [],
   "main": "./out/extension.js",
   "contributes": {
@@ -77,12 +88,12 @@
         "jarvis.scopus.apiKey": {
           "type": "string",
           "default": "",
-          "description": "Your Scopus API key"
+          "description": "Your Scopus API key (optional)"
         },
         "jarvis.springer.apiKey": {
           "type": "string",
           "default": "",
-          "description": "Your Springer API key"
+          "description": "Your Springer API key (optional)"
         },
         "jarvis.research.searchEngine": {
           "type": "string",
