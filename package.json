@@ -58,31 +58,42 @@
         "jarvis.openAI.maxTokens": {
           "type": "number",
           "default": 4000,
-          "description": "Maximum number of tokens to return"
+          "minimum": 128,
+          "maximum": 4096,
+          "description": "Maximum number of tokens to return",
         },
         "jarvis.openAI.temperature": {
           "type": "number",
           "default": 0.9,
+          "minimum": 0,
+          "maximum": 2,
           "description": "Temperature for the GPT-3 model"
         },
         "jarvis.openAI.topP": {
           "type": "number",
           "default": 1,
+          "minimum": 0,
+          "maximum": 1,
           "description": "Top-p for the GPT-3 model"
         },
         "jarvis.openAI.frequencyPenalty": {
           "type": "number",
           "default": 0,
+          "minimum": -2,
+          "maximum": 2,
           "description": "Frequency penalty for the GPT-3 model"
         },
         "jarvis.openAI.presencePenalty": {
           "type": "number",
           "default": 0,
+          "minimum": -2,
+          "maximum": 2,
           "description": "Presence penalty for the GPT-3 model"
         },
         "jarvis.openAI.timeout": {
           "type": "number",
           "default": 30,
+          "minimum": 0,
           "description": "Timeout (sec) for the GPT-3 model"
         },
         "jarvis.scopus.apiKey": {
@@ -112,12 +123,14 @@
         "jarvis.research.paperSpace": {
           "type": "number",
           "default": 50,
+          "minimum": 10,
+          "maxmimum": 1000,
           "description": "Top search results to sample from"
         },
         "jarvis.research.paperTokens": {
           "type": "number",
-          "min": 0,
-          "max": 100,
+          "minimum": 0,
+          "maximum": 100,
           "default": 50,
           "description": "% of tokens for paper content (research context)"
         },
