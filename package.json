@@ -60,7 +60,7 @@
           "default": 4000,
           "minimum": 128,
           "maximum": 4096,
-          "description": "Maximum number of tokens to return",
+          "description": "Maximum number of tokens to return"
         },
         "jarvis.openAI.temperature": {
           "type": "number",
