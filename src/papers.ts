@@ -170,7 +170,7 @@ async function run_scopus_query(query: string, papers: number,
     if (data) {
       papers = data['search-results']['entry'];
     }
-    if (!data || papers[0].hasOwnProperty('error')) {
+    if (!data || !papers || papers[0].hasOwnProperty('error')) {
       start += 25;
       continue;
     }
