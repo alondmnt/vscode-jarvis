@@ -64,7 +64,7 @@
         },
         "jarvis.openAI.temperature": {
           "type": "number",
-          "default": 0.9,
+          "default": 1.0,
           "minimum": 0,
           "maximum": 2,
           "description": "Temperature for the GPT-3 model"
