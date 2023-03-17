@@ -18,6 +18,10 @@ Write what you're interested about, select the text, and run the command "Resear
 
 ## Release Notes
 
+### 0.0.2-0.0.3
+
+Improved Wikipedia summary.
+
 ### 0.0.1
 
 Ported Jarvis (research mode) from Joplin.
