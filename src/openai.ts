@@ -11,10 +11,11 @@ export async function query_completion(
     throw new Error('OpenAI API key not set');
   }
 
+  const input_tokens = Math.ceil(prompt.length / 4) + 20;  // heuristic for input length with some room for error
   let url: string = '';
   let responseParams: any = {
     model: settings.model,
-    max_tokens: settings.max_tokens - Math.ceil(prompt.length / 4) - adjust_max_tokens,
+    max_tokens: settings.max_tokens - input_tokens - adjust_max_tokens,
     temperature: settings.temperature,
     top_p: settings.top_p,
     frequency_penalty: settings.frequency_penalty,
@@ -29,6 +30,7 @@ export async function query_completion(
         {role: 'user', content: prompt}
       ],
     };
+    responseParams['max_tokens'] -= 10;  // correction due to system message
   } else {
     url = 'https://api.openai.com/v1/completions';
     responseParams = {...responseParams,
