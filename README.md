@@ -1,6 +1,6 @@
 # Jarvis
 
-[![DOI](https://zenodo.org/badge/doi/10.5281/zenodo.7746861.png)](https://zenodo.org/badge/latestdoi/612752168)
+[![DOI](https://zenodo.org/badge/doi/10.5281/zenodo.7779363.png)](https://zenodo.org/badge/latestdoi/612752168)
 
 Jarvis is an AI assistant for compiling scientific literature auto-reviews based on free text prompts. This extension was ported from [Jarvis](https://github.com/alondmnt/joplin-plugin-jarvis) for the [Joplin](https://joplinapp.org) note-taking app.
 
@@ -17,6 +17,11 @@ Write what you're interested about, select the text, and run the command "Resear
 - For access to Springer's paper repository (optional) you will need to get a free [Springer API key](https://dev.springernature.com/admin/applications)
 
 ## Release Notes
+
+### 0.0.4
+
+Improved token estimation.
+License: AGPLv3.
 
 ### 0.0.2-0.0.3
 

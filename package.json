@@ -2,7 +2,7 @@
   "name": "jarvis-notes",
   "displayName": "Jarvis",
   "description": "AI-powered scientific literature review (GPT-3)",
-  "version": "0.0.3",
+  "version": "0.0.4",
   "publisher": "alondmnt",
   "author": {
     "name": "Alon Diament"
