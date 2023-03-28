@@ -24,7 +24,7 @@
     "type": "git",
     "url": "https://github.com/alondmnt/vscode-jarvis"
   },
-  "license": "MIT",
+  "license": "AGPLv3",
   "activationEvents": [],
   "main": "./out/extension.js",
   "contributes": {
