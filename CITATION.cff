@@ -5,7 +5,7 @@ authors:
   given-names: "Alon"
   orcid: "https://orcid.org/0000-0002-3939-5703"
 title: "Jarvis: AI-powered scientific literature review"
-version: 0.0.3
-doi: 10.5281/zenodo.7746861
+version: 0.0.4
+doi: 10.5281/zenodo.7779363
 date-released: 2023-03-17
 url: "https://github.com/alondmnt/vscode-jarvis"
