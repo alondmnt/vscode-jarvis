@@ -2,7 +2,7 @@
 
 [![DOI](https://zenodo.org/badge/doi/10.5281/zenodo.7779363.png)](https://zenodo.org/badge/latestdoi/612752168)
 
-Jarvis is an AI assistant for compiling scientific literature auto-reviews based on free text prompts. This extension was ported from [Jarvis](https://github.com/alondmnt/joplin-plugin-jarvis) for the [Joplin](https://joplinapp.org) note-taking app.
+Jarvis is an AI assistant for compiling [scientific literature auto-reviews](https://medium.com/@alondmnt/ai-powered-literature-review-6918ee180304) based on free text prompts. This extension was ported from [Jarvis](https://github.com/alondmnt/joplin-plugin-jarvis) for the [Joplin](https://joplinapp.org) note-taking app.
 
 ## Features
 
